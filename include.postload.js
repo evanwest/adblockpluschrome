@@ -398,6 +398,27 @@ function normalizeURL(url)
   return components[1] + newPath;
 }
 
+function checkContext(document){
+
+  if(document.URL.match(/youtube.com\/watch/)){
+    var channelId = (document.querySelector("[itemprop=channelId]") || {}).content;
+    
+    //var channelTag = document.getElementsByClassName("yt-user-info")[0].children[0];
+    //if(channelTag.dataset.ytid === channelId){
+    //  var channelName = channelTag.innerHTML;
+    //  console.log("channel: "+channelName);
+    //}
+    if(channelId){
+      console.log("id: "+channelId+"\nsending message...");
+      //send message here
+      ext.backgroundPage.sendMessage({
+	type: "check-content-whitelist",
+	ytid: channelId
+      });
+    }
+  }
+}
+
 // Content scripts are apparently invoked on non-HTML documents, so we have to
 // check for that before doing stuff. |document instanceof HTMLDocument| check
 // will fail on some sites like planet.mozilla.org because WebKit creates
@@ -565,4 +586,7 @@ if (document.documentElement instanceof HTMLElement)
         break;
     }
   });
+
+  checkContext(document);
+
 }

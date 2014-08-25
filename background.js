@@ -32,6 +32,7 @@ with(require("whitelisting"))
 {
   this.isWhitelisted = isWhitelisted;
   this.isFrameWhitelisted = isFrameWhitelisted;
+  this.isPageWhitelistedByContent = isPageWhitelistedByContent;
   this.processKeyException = processKeyException;
 }
 var FilterStorage = require("filterStorage").FilterStorage;
@@ -595,6 +596,17 @@ ext.onMessage.addListener(function (msg, sender, sendResponse)
         return true;
       }
       break;
+    case "check-content-whitelist":
+	console.log("Got check-content message");
+	if(msg.ytid){
+	var whitelistedYTChannels  = {"UCfW_QCRY30-w3nbr71bd2pg":true};
+	  //this is a youtube page, check against list
+	  if(msg.ytid in whitelistedYTChannels){
+	    var parent_frame = sender.frame.parent;
+	    parent_frame.temp_whitelist=true;
+	  }
+	}
+	break;
     default:
       sendResponse({});
       break;

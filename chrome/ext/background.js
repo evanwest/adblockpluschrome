@@ -350,7 +350,7 @@
           for (var frameId in frames)
           {
             if (frames[frameId].url == rawSender.url)
-              return frames[frameId].parent;
+              return frames[frameId].parent || frames[frameId];
           }
 
           return frames[0];
