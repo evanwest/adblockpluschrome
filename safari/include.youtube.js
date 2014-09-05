@@ -19,11 +19,16 @@
   if (document.domain != "www.youtube.com")
     return;
 
+  if (!ext.backgroundPage.sendMessageSync({type: "get-domain-enabled-state"}).enabled)
+    return;
+
+  var badArgumentsRegex = /^((.*_)?(ad|ads|afv|adsense)(_.*)?|(ad3|st)_module|prerolls|interstitial|infringe|iv_cta_url)$/;
+
   function rewriteFlashvars(flashvars)
   {
     var pairs = flashvars.split("&");
     for (var i = 0; i < pairs.length; i++)
-      if (/^((ad|afv|adsense)(_.*)?|(ad3|st)_module|prerolls|interstitial|infringe|iv_cta_url)=/.test(pairs[i]))
+      if (badArgumentsRegex.test(pairs[i].split("=")[0]))
         pairs.splice(i--, 1);
     return pairs.join("&");
   }
@@ -63,41 +68,98 @@
       player.parentNode.replaceChild(newPlayer, player);
   }
 
-  var deferred = [];
-  function patchPlayerDeferred(player)
+  function runInPage(fn, arg)
   {
-    deferred.push(player);
+    var script = document.createElement("script");
+    script.type = "application/javascript";
+    script.async = false;
+    script.textContent = "(" + fn + ")(" + arg + ");";
+    document.documentElement.appendChild(script);
+    document.documentElement.removeChild(script);
   }
 
-  var onBeforeLoadYoutubeVideo = patchPlayerDeferred;
-  function onBeforeLoad(event)
+  document.addEventListener("beforeload", function(event)
   {
     if ((event.target.localName == "object" || event.target.localName == "embed") && /:\/\/[^\/]*\.ytimg\.com\//.test(event.url))
-      onBeforeLoadYoutubeVideo(event.target);
-  }
+      patchPlayer(event.target);
+  }, true);
 
-  ext.backgroundPage.sendMessage({type: "get-domain-enabled-state"}, function(response)
+  runInPage(function(badArgumentsRegex)
   {
-    if (response.enabled)
+    // If history.pushState is available, YouTube uses the history API
+    // when navigation from one video to another, and tells the flash
+    // player with JavaScript which video and which ads to show next,
+    // bypassing our flashvars rewrite code. So we disable
+    // history.pushState before YouTube's JavaScript runs.
+    History.prototype.pushState = undefined;
+
+    // The HTML5 player is configured via ytplayer.config.args. We have
+    // to make sure that ad-related arguments are ignored as they are set.
+    var ytplayer = undefined;
+    Object.defineProperty(window, "ytplayer",
     {
-      deferred.forEach(patchPlayer);
-      onBeforeLoadYoutubeVideo = patchPlayer;
-    }
-    else
-      document.removeEventListener("beforeload", onBeforeLoad, true);
-  });
+      configurable: true,
+      get: function()
+      {
+        return ytplayer;
+      },
+      set: function(rawYtplayer)
+      {
+        if (!rawYtplayer || typeof rawYtplayer != "object")
+        {
+          ytplayer = rawYtplayer;
+          return;
+        }
 
-  document.addEventListener("beforeload", onBeforeLoad, true);
+        var config = undefined;
+        ytplayer = Object.create(rawYtplayer, {
+          config: {
+            enumerable: true,
+            get: function()
+            {
+              return config;
+            },
+            set: function(rawConfig)
+            {
+              if (!rawConfig || typeof rawConfig != "object")
+              {
+                config = rawConfig;
+                return;
+              }
 
-  // if history.pushState is available, YouTube uses the history API
-  // when navigation from one video to another, and tells the flash
-  // player with JavaScript which video and which ads to show next,
-  // bypassing our flashvars rewrite code. So we disable
-  // history.pushState before YouTube's JavaScript runs.
-  var script = document.createElement("script");
-  script.type = "application/javascript";
-  script.async = false;
-  script.textContent = "History.prototype.pushState = undefined;";
-  document.documentElement.appendChild(script);
-  document.documentElement.removeChild(script);
+              var args = undefined;
+              config = Object.create(rawConfig, {
+                args: {
+                  enumerable: true,
+                  get: function()
+                  {
+                    return args;
+                  },
+                  set: function(rawArgs)
+                  {
+                    if (!rawArgs || typeof rawArgs != "object")
+                    {
+                      args = rawArgs;
+                      return;
+                    }
+
+                    args = {};
+                    for (var arg in rawArgs)
+                    {
+                      if (!badArgumentsRegex.test(arg))
+                        args[arg] = rawArgs[arg];
+                    }
+                  }
+                }
+              });
+
+              config.args = rawConfig.args;
+            }
+          }
+        });
+
+        ytplayer.config = rawYtplayer.config;
+      }
+    });
+  }, badArgumentsRegex);
 })();

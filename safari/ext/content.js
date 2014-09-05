@@ -35,7 +35,7 @@
     beforeLoadEvent,
     {
       category: "loading",
-      url: document.location.href,
+      url: window.location.href,
       referrer: document.referrer,
       isTopLevel: isTopLevel,
       isPrerendered: isPrerendered
@@ -382,6 +382,18 @@
     sendMessage: function(message, responseCallback)
     {
       messageProxy.sendMessage(message, responseCallback, documentInfo);
+    },
+    sendMessageSync: function(message)
+    {
+      return safari.self.tab.canLoad(
+        beforeLoadEvent,
+        {
+          category: "request",
+          pageId: documentInfo.pageId,
+          frameId: documentInfo.frameId,
+          payload: message
+        }
+      );
     },
     getWindow: function()
     {
