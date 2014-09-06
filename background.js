@@ -569,13 +569,15 @@ ext.onMessage.addListener(function (msg, sender, sendResponse)
         return true;
       }
       break;
-    case "check-content-whitelist":
-	console.log("Got check-content message");
+    case "check-new-ytid":
+	console.log("Got check-ytid message");
 	if(msg.ytid){
-	var whitelistedYTChannels  = {"UCfW_QCRY30-w3nbr71bd2pg":true};
-	  //this is a youtube page, check against list
+	  sender.page.ytid = msg.ytid;
+	  var whitelistedYTChannels  = {"UCfW_QCRY30-w3nbr71bd2pg":true};
+	  //this is a youtube page, check against list (TODO: change to filters lookup)
+	  var parent_frame = sender.frame.parent;
+	  parent_frame.ytid = msg.ytid;
 	  if(msg.ytid in whitelistedYTChannels){
-	    var parent_frame = sender.frame.parent;
 	    parent_frame.temp_whitelist=true;
 	  }
 	}
@@ -585,6 +587,15 @@ ext.onMessage.addListener(function (msg, sender, sendResponse)
       break;
   }
 });
+
+function ytFilterStatus(callback){
+  var tab = ext.pages.query({active:true, lastFocusedWindow:true}, function(pages) {
+    var page = pages[0];
+    var frame = ext.getFrame(page._id, 0)||{};
+    callback(frame.ytid, {enabled: frame.temp_whitelist});
+  });
+}
+          
 
 // update icon when page changes location
 ext.pages.onLoading.addListener(function(page)

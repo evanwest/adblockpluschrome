@@ -46,6 +46,24 @@ function init()
       if (isWhitelisted(page.url))
         document.getElementById("enabled").classList.add("off");
 
+      ext.backgroundPage.getWindow().ytFilterStatus(function(found, filter){
+	  if(found){
+	      document.getElementById("ytenabled").classList.remove("hidden");
+	      if(filter && filter.enabled){
+		  document.getElementById("ytenabled").classList.add("off");
+	      }
+	  }
+	  else{
+	      document.getElementById("ytenabled").classList.add("hidden");
+	  }
+      });
+
+
+      console.log("Popup got page with properties:");
+      for(prop in page){
+	  console.log(prop);
+      }
+
       page.sendMessage({type: "get-clickhide-state"}, function(response)
       {
         if (response && response.active)
@@ -56,6 +74,7 @@ function init()
 
   // Attach event listeners
   document.getElementById("enabled").addEventListener("click", toggleEnabled, false);
+  document.getElementById("ytenabled").addEventListener("click", toggleYTEnabled, false);
   document.getElementById("clickhide").addEventListener("click", activateClickHide, false);
   document.getElementById("clickhide-cancel").addEventListener("click", cancelClickHide, false);
   document.getElementById("options").addEventListener("click", function()
@@ -102,6 +121,21 @@ function toggleEnabled()
         filter.disabled = true;
       filter = isWhitelisted(page.url);
     }
+  }
+}
+
+function toggleYTEnabled()
+{
+  var ytenabledButton = document.getElementById("ytenabled")
+  var disabled = ytenabledButton.classList.toggle("off");
+  if(disabled)
+  {
+    //TODO: add this channel to whitelist
+    console.log("Adding current channel to whitelist");
+  }
+  else{
+    //TODO: remove this channel from whitelist
+    console.log("Removing current channel from whitelist");
   }
 }
 

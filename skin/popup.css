@@ -5,7 +5,7 @@ body
   font-family: Segoe UI, Arial, sans-serif;
   font-size: 13px;
   color: #545454;
-  background-color: #f8f6f2;
+  background-color: #F8F6F2;
   background-image: url(background.png);
 }
 
@@ -23,6 +23,7 @@ body.clickhide-active #clickhide-cancel
 }
 
 body.local #enabled,
+body.local #ytenabled,
 body.local #clickhide,
 body.local #stats-page
 {
@@ -174,35 +175,43 @@ li li
   background-image: url(popup.png);
 }
 
-#enabled-yes strong
+#enabled-yes strong, #ytenabled-yes strong
 {
   font-weight: normal;
   color: #12610e;
 }
 
-#enabled-no strong
+#enabled-no strong, #ytenabled-no strong
 {
   font-weight: normal;
   color: #ac0505;
 }
 
-#enabled .icon
+#enabled .icon, #ytenabled .icon
 {
   background-position: -50px -1px ;
 }
 
-#enabled.off .icon
+#enabled.off .icon, #ytenabled.off .icon
 {
   background-position: -50px -17px;
 }
 
-#enabled-no,
-#enabled.off #enabled-yes
+#ytenabled.hidden
 {
   display: none;
 }
 
-#enabled.off #enabled-no
+#enabled-no,
+#enabled.off #enabled-yes,
+#ytenabled-no,
+#ytenabled.off #ytenabled-yes
+{
+  display: none;
+}
+
+#enabled.off #enabled-no,
+#ytenabled.off #ytenabled-no
 {
   display: inline;
 }

@@ -400,9 +400,9 @@ function normalizeURL(url)
 
 function checkContext(document){
 
-  if(document.URL.match(/youtube.com\/watch/)){
+  if(document.URL.match(/youtube.com\/(?:watch|channel)/)){
+    //  Check for channel ID from video page
     var channelId = (document.querySelector("[itemprop=channelId]") || {}).content;
-    
     //var channelTag = document.getElementsByClassName("yt-user-info")[0].children[0];
     //if(channelTag.dataset.ytid === channelId){
     //  var channelName = channelTag.innerHTML;
@@ -412,11 +412,13 @@ function checkContext(document){
       console.log("id: "+channelId+"\nsending message...");
       //send message here
       ext.backgroundPage.sendMessage({
-	type: "check-content-whitelist",
+	type: "check-new-ytid",
 	ytid: channelId
       });
     }
   }
+
+
 }
 
 // Content scripts are apparently invoked on non-HTML documents, so we have to

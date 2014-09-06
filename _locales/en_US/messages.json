@@ -44,6 +44,11 @@
     "description": "Popup balloon label to disable blocking",
     "message": "<strong>Disabled</strong> on this site"
   },
+  "disabled_for_ytchannel":
+  {
+    "description": "Popup baloon label to enable whitelisting for specific channel",
+    "message": "<strong>Disabled</strong> for this channel"
+  },
   "disable_inline": {
     "message": "Disable inline text ads"
   },
@@ -63,6 +68,10 @@
   "enabled_for_site": {
     "description": "Popup balloon label to enable blocking",
     "message": "<strong>Enabled</strong> on this site"
+  },
+  "enabled_for_ytchannel": {
+    "description": "Popup baloon label to enable whitelisting for specific channel",
+    "message": "<strong>Enabled</strong> for this channel"
   },
   "filter_lists": {
     "description": "This is a tab heading.",
