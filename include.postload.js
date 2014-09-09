@@ -399,27 +399,34 @@ function normalizeURL(url)
 }
 
 function checkContext(document){
+    checkForYTIDMetadata(document);
+    //insert other metadata checks here
+}
 
+function checkForYTIDMetadata(document)
+{
   if(document.URL.match(/youtube.com\/(?:watch|channel)/)){
-    //  Check for channel ID from video page
-    var channelId = (document.querySelector("[itemprop=channelId]") || {}).content;
     //var channelTag = document.getElementsByClassName("yt-user-info")[0].children[0];
     //if(channelTag.dataset.ytid === channelId){
     //  var channelName = channelTag.innerHTML;
     //  console.log("channel: "+channelName);
     //}
+
+    //  Check for channel ID from video or channel page
+    var channelId = (document.querySelector("[itemprop=channelId]") || {}).content;
     if(channelId){
-      console.log("id: "+channelId+"\nsending message...");
-      //send message here
+      //we cannot (?) add metadata to frame directly here, 
+      // call background page to do it for us
       ext.backgroundPage.sendMessage({
-	type: "check-new-ytid",
-	ytid: channelId
+	type: "add-metadata",
+	metadata: {"ytid": channelId }
       });
     }
   }
-
-
 }
+
+
+
 
 // Content scripts are apparently invoked on non-HTML documents, so we have to
 // check for that before doing stuff. |document instanceof HTMLDocument| check

@@ -26,6 +26,7 @@ var Prefs = require("prefs").Prefs;
 var isWhitelisted = require("whitelisting").isWhitelisted;
 
 var page = null;
+var metadata = null;
 
 function init()
 {
@@ -43,26 +44,31 @@ function init()
     // Otherwise, we are in default state.
     if (page)
     {
-      if (isWhitelisted(page.url))
-        document.getElementById("enabled").classList.add("off");
+      console.log("Got pages query back, fetching metadata");
+      ext.backgroundPage.getWindow().getMetadata(function(data){
+	if(data){
+	  metadata = data;
+	}
 
-      ext.backgroundPage.getWindow().ytFilterStatus(function(found, filter){
-	  if(found){
-	      document.getElementById("ytenabled").classList.remove("hidden");
-	      if(filter && filter.enabled){
-		  document.getElementById("ytenabled").classList.add("off");
-	      }
+	var whitelistFilter = isWhitelisted(page.url, null, null, metadata);
+	if (whitelistFilter)
+          document.getElementById("enabled").classList.add("off")
+
+	if((metadata || {}).ytid){
+	  //this page had ytid info, show channel enable/disable button
+	  document.getElementById("ytenabled").classList.remove("hidden");
+
+	  //check for active/inactive state of channel filter
+	  if(whitelistFilter && whitelistFilter.metadata && whitelistFilter.metadata.ytid){
+	    document.getElementById("ytenabled").classList.add("off");
 	  }
-	  else{
-	      document.getElementById("ytenabled").classList.add("hidden");
-	  }
+	  //else do nothing
+	}
+	else{
+	  //has no ytid info, hide channel enable/disable buttons
+	  document.getElementById("ytenabled").classList.add("hidden");
+	}
       });
-
-
-      console.log("Popup got page with properties:");
-      for(prop in page){
-	  console.log(prop);
-      }
 
       page.sendMessage({type: "get-clickhide-state"}, function(response)
       {
@@ -126,16 +132,38 @@ function toggleEnabled()
 
 function toggleYTEnabled()
 {
+  if(!metadata || !metadata.ytid){
+    return;
+  }
+  
   var ytenabledButton = document.getElementById("ytenabled")
   var disabled = ytenabledButton.classList.toggle("off");
   if(disabled)
   {
     //TODO: add this channel to whitelist
-    console.log("Adding current channel to whitelist");
+    var host = extractHostFromURL(page.url).replace(/^www\./, "");
+    var filter = Filter.fromText("@@||"+host+"^{{\"ytid\":\""+metadata.ytid+"\"}}$document");
+    console.log("Adding channel "+metadata.ytid+" to whitelist");
+    if (filter.subscriptions.length && filter.disabled)
+      filter.disabled = false;
+    else
+    {
+      filter.disabled = false;
+      FilterStorage.addFilter(filter);
+    }
   }
   else{
-    //TODO: remove this channel from whitelist
-    console.log("Removing current channel from whitelist");
+    // Remove only rules applying to this URL with metadata
+    var filter = isWhitelisted(page.url, null, null, metadata);
+    while (filter)
+    {
+      if(filter.metadata && filter.metadata.ytid){
+	FilterStorage.removeFilter(filter);
+ 	if (filter.subscriptions.length)
+          filter.disabled = true;
+      }
+      filter = isWhitelisted(page.url, null, null, metadata);
+    }
   }
 }
 

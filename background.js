@@ -32,7 +32,6 @@ with(require("whitelisting"))
 {
   this.isWhitelisted = isWhitelisted;
   this.isFrameWhitelisted = isFrameWhitelisted;
-  this.isPageWhitelistedByContent = isPageWhitelistedByContent;
   this.processKeyException = processKeyException;
 }
 var FilterStorage = require("filterStorage").FilterStorage;
@@ -569,17 +568,22 @@ ext.onMessage.addListener(function (msg, sender, sendResponse)
         return true;
       }
       break;
-    case "check-new-ytid":
-	console.log("Got check-ytid message");
-	if(msg.ytid){
-	  sender.page.ytid = msg.ytid;
-	  var whitelistedYTChannels  = {"UCfW_QCRY30-w3nbr71bd2pg":true};
-	  //this is a youtube page, check against list (TODO: change to filters lookup)
-	  var parent_frame = sender.frame.parent;
-	  parent_frame.ytid = msg.ytid;
-	  if(msg.ytid in whitelistedYTChannels){
-	    parent_frame.temp_whitelist=true;
+    case "add-metadata":
+	if(msg.metadata){
+	  var frame = sender.frame.parent ? sender.frame.parent : sender.frame;
+	  if(!frame){
+	    console.log("Got add-metadata request from sender with no frame");
+	    return;
 	  }
+	  if(! frame.metadata){
+	    frame.metadata = {};
+	  }
+	  for(var key in msg.metadata){
+	    if(msg.metadata.hasOwnProperty(key)){
+	      frame.metadata[key] = msg.metadata[key];
+	    }
+	  }
+	  //success!
 	}
 	break;
     default:
@@ -588,11 +592,11 @@ ext.onMessage.addListener(function (msg, sender, sendResponse)
   }
 });
 
-function ytFilterStatus(callback){
+function getMetadata(callback){
   var tab = ext.pages.query({active:true, lastFocusedWindow:true}, function(pages) {
     var page = pages[0];
     var frame = ext.getFrame(page._id, 0)||{};
-    callback(frame.ytid, {enabled: frame.temp_whitelist});
+    callback(frame ? frame.metadata : null);
   });
 }
           
