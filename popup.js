@@ -44,14 +44,13 @@ function init()
     // Otherwise, we are in default state.
     if (page)
     {
-      console.log("Got pages query back, fetching metadata");
       ext.backgroundPage.getWindow().getMetadata(function(data){
 	if(data){
 	  metadata = data;
 	}
 
 	var whitelistFilter = isWhitelisted(page.url, null, null, metadata);
-	if (whitelistFilter)
+	if (whitelistFilter && !(whitelistFilter.metadata && whitelistFilter.metadata.ytid))
           document.getElementById("enabled").classList.add("off")
 
 	if((metadata || {}).ytid){
