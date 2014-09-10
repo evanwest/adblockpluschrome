@@ -590,6 +590,9 @@ if (document.documentElement instanceof HTMLElement)
           clickHide_deactivate();
         }
         break;
+      case "check-context":
+	checkContext(document);
+	break;
       default:
         sendResponse({});
         break;
