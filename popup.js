@@ -49,7 +49,7 @@ function init()
 	  metadata = data;
 	}
 
-	var whitelistFilter = isWhitelisted(page.url, null, null, metadata);
+	var whitelistFilter = isWhitelisted(page.url, null, null, null, metadata);
 	if (whitelistFilter && !(whitelistFilter.metadata && whitelistFilter.metadata.ytid))
           document.getElementById("enabled").classList.add("off")
 
@@ -153,7 +153,7 @@ function toggleYTEnabled()
   }
   else{
     // Remove only rules applying to this URL with metadata
-    var filter = isWhitelisted(page.url, null, null, metadata);
+    var filter = isWhitelisted(page.url, null, null, null, metadata);
     while (filter)
     {
       if(filter.metadata && filter.metadata.ytid){
@@ -161,7 +161,7 @@ function toggleYTEnabled()
  	if (filter.subscriptions.length)
           filter.disabled = true;
       }
-      filter = isWhitelisted(page.url, null, null, metadata);
+      filter = isWhitelisted(page.url, null, null, null, metadata);
     }
   }
 }
