@@ -364,11 +364,6 @@ function clickHide_mouseClick(e)
   else if (elt.src)
     url = elt.src;
 
-  // Only normalize when the element contains a URL (issue 328.)
-  // The URL is not always normalized, so do it here
-  if (url)
-    url = normalizeURL(relativeToAbsoluteUrl(url));
-
   // Construct filters. The popup will retrieve these.
   // Only one ID
   var elementId = elt.id ? elt.id.split(' ').join('') : null;
@@ -396,8 +391,8 @@ function clickHide_mouseClick(e)
   }
   if (url)
   {
-    clickHideFilters.push(relativeToAbsoluteUrl(url));
-    selectorList.push(elt.localName + '[src="' + url + '"]');
+    clickHideFilters.push(url);
+    selectorList.push('[src="' + elt.getAttribute("src") + '"]');
   }
 
   // Show popup
@@ -432,8 +427,11 @@ function getElementURL(elt) {
       if(params[0])
         url = params[0].getAttribute("value");
     }
+
+    if (url)
+      url = resolveURL(url);
   } else if(!url) {
-    url = elt.getAttribute("src") || elt.getAttribute("href");
+    url = elt.src || elt.href;
   }
   return url;
 }
@@ -465,20 +463,6 @@ function removeDotSegments(u) {
   } else {
     return u;
   }
-}
-
-// Does some degree of URL normalization
-function normalizeURL(url)
-{
-  var components = url.match(/(.+:\/\/.+?)\/(.*)/);
-  if(!components)
-    return url;
-  var newPath = removeDotSegments(components[2]);
-  if(newPath.length == 0)
-    return components[1];
-  if(newPath[0] != '/')
-    newPath = '/' + newPath;
-  return components[1] + newPath;
 }
 
 function checkContext(document){
@@ -515,7 +499,7 @@ function checkForYTIDMetadata(document)
 // check for that before doing stuff. |document instanceof HTMLDocument| check
 // will fail on some sites like planet.mozilla.org because WebKit creates
 // Document instances for XHTML documents, have to test the root element.
-if (document.documentElement instanceof HTMLElement)
+if (document instanceof HTMLDocument)
 {
   // Use a contextmenu handler to save the last element the user right-clicked on.
   // To make things easier, we actually save the DOM event.
@@ -683,4 +667,6 @@ if (document.documentElement instanceof HTMLElement)
 
   checkContext(document);
 
+  if (window == window.top)
+    ext.backgroundPage.sendMessage({type: "report-html-page"});
 }

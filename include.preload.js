@@ -47,11 +47,22 @@ function checkCollapse(element)
       {
         if (response && element.parentNode)
         {
+          var property = "display";
+          var value = "none";
+
           // <frame> cannot be removed, doing that will mess up the frameset
           if (tag == "frame")
-            element.style.setProperty("visibility", "hidden", "important");
-          else
-            element.style.setProperty("display", "none", "important");
+          {
+            property = "visibility";
+            value = "hidden";
+          }
+
+          // <input type="image"> elements try to load their image again
+          // when the "display" CSS property is set. So we have to check
+          // that it isn't already collapsed to avoid an infinite recursion.
+          if (element.style.getPropertyValue(property) != value ||
+              element.style.getPropertyPriority(property) != "important")
+            element.style.setProperty(property, value, "important");
         }
       }
     );
@@ -86,30 +97,11 @@ function isInlineFrame(element)
   }
 }
 
-// Converts relative to absolute URL
-// e.g.: foo.swf on http://example.com/whatever/bar.html
-//  -> http://example.com/whatever/foo.swf
-function relativeToAbsoluteUrl(url)
+function resolveURL(url)
 {
-  // If URL is already absolute, don't mess with it
-  if (!url || /^[\w\-]+:/i.test(url))
-    return url;
-
-  // Leading / means absolute path
-  // Leading // means network path
-  if (url[0] == '/')
-  {
-    if (url[1] == '/')
-      return window.location.protocol + url;
-    else
-      return window.location.protocol + "//" + window.location.host + url;
-  }
-
-  // Remove filename and add relative URL to it
-  var base = document.baseURI.match(/.+\//);
-  if (!base)
-    return document.baseURI + "/" + url;
-  return base[0] + url;
+  var a = document.createElement("a");
+  a.href = url;
+  return a.href;
 }
 
 function init(document)
