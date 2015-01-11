@@ -48,12 +48,17 @@
     },
     activate: function()
     {
-      chrome.tabs.update(this._id, {selected: true});
+      chrome.tabs.update(this._id, {highlighted: true});
     },
     sendMessage: function(message, responseCallback)
     {
       chrome.tabs.sendMessage(this._id, message, responseCallback);
     }
+  };
+
+  ext._getPage = function(id)
+  {
+    return new Page({id: parseInt(id, 10)});
   };
 
   ext.pages = {
@@ -201,7 +206,7 @@
             contexts: item.contexts,
             onclick: function(info, tab)
             {
-              item.onclick(info.srcUrl, new Page(tab));
+              item.onclick(new Page(tab));
             }
           });
         });
@@ -249,7 +254,7 @@
   };
 
   ext.webRequest = {
-    onBeforeRequest: new ext._EventTarget(true),
+    onBeforeRequest: new ext._EventTarget(),
     handlerBehaviorChanged: chrome.webRequest.handlerBehaviorChanged
   };
 
@@ -319,13 +324,20 @@
 
         if (frame)
         {
-          // Chrome 38 and 39 mistakenly reports requests of type 'object'
-          // (e.g. requests initiated by Flash) with the type 'other'.
+          // Since Chrome 38 requests of type 'object' (e.g. requests
+          // initiated by Flash) are mistakenly reported with the type 'other'.
           // https://code.google.com/p/chromium/issues/detail?id=410382
-          if (requestType == "other" && / Chrome\/3[8-9]\b/.test(navigator.userAgent))
+          if (requestType == "other" && parseInt(navigator.userAgent.match(/\bChrome\/(\d+)/)[1], 10) >= 38)
             requestType = "object";
 
-          if (!ext.webRequest.onBeforeRequest._dispatch(details.url, requestType, new Page({id: details.tabId}), frame))
+          var results = ext.webRequest.onBeforeRequest._dispatch(
+            details.url,
+            requestType,
+            new Page({id: details.tabId}),
+            frame
+          );
+
+          if (results.indexOf(false) != -1)
             return {cancel: true};
         }
       }
@@ -358,22 +370,68 @@
           if (!frames)
             return null;
 
-          for (var frameId in frames)
+          if ("frameId" in rawSender)
           {
-            if (frames[frameId].url == rawSender.url)
-              return frames[frameId].parent || frames[frameId];
+            // Chrome 41+
+            var frame = frames[rawSender.frameId];
+            if (frame)
+              return frame.parent || frame;
           }
-
+          else
+          {
+            // Chrome 28-40
+            for (var frameId in frames)
+            {
+              if (frames[frameId].url == rawSender.url)
+                return frames[frameId].parent || frames[frameId];
+            }
+          }
           return frames[0];
         }
       }
     };
 
-    return ext.onMessage._dispatch(message, sender, sendResponse);
+    return ext.onMessage._dispatch(message, sender, sendResponse).indexOf(true) != -1;
   });
 
 
   /* Storage */
 
   ext.storage = localStorage;
+
+
+  /* Options */
+
+  ext.showOptions = function(callback)
+  {
+    chrome.windows.getLastFocused(function(win)
+    {
+      var optionsUrl = chrome.extension.getURL("options.html");
+      var queryInfo = {url: optionsUrl};
+
+      // extension pages can't be accessed in incognito windows. In order to
+      // correctly mimic the way in which Chrome opens extension options,
+      // we have to focus the options page in any other window.
+      if (!win.incognito)
+        queryInfo.windowId = win.id;
+
+      chrome.tabs.query(queryInfo, function(tabs)
+      {
+        if (tabs.length > 0)
+        {
+          var tab = tabs[0];
+
+          chrome.windows.update(tab.windowId, {focused: true});
+          chrome.tabs.update(tab.id, {highlighted: true});
+
+          if (callback)
+            callback(new Page(tab));
+        }
+        else
+        {
+          ext.pages.open(optionsUrl, callback);
+        }
+      });
+    });
+  };
 })();

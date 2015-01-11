@@ -27,16 +27,13 @@
     "message": "Après avoir fermé ce pop-up, cliquez (ou cliquez-droit) sur un élément de la page."
   },
   "description_chrome": {
-    "message": "Le pare-pub gratuit pour Chrome : bloque les annonces gênantes sur YouTube, les pubs sur Facebook, les bannières et bien plus."
+    "message": "Comme plus de 50 millions d'utilisateurs, bloquez gratuitement TOUTES les publicités intrusives, logiciels malveillants et trackers."
   },
   "description_opera": {
-    "message": "Le pare-pub gratuit pour Opera : bloque les annonces gênantes sur YouTube, les pubs sur Facebook, les bannières et bien plus."
+    "message": "Utilisé par plus de 50 millions de personnes, Adblock Plus pour Opera est gratuit et bloque TOUTES les publicités intrusives, les logiciels malveillants et les trackers."
   },
   "description_safari": {
-    "message": "Le pare-pub gratuit pour Safari : bloque les annonces gênantes sur YouTube, les pubs sur Facebook, les bannières et bien plus."
-  },
-  "disable_inline": {
-    "message": "Retirer les publicités intégrées aux textes"
+    "message": "Utilisé par plus de 50 millions de personnes, Adblock Plus pour Safari est gratuit et bloque TOUTES les publicités intrusives, les logiciels malveillants et les trackers."
   },
   "disabled_for_site": {
     "message": "<strong>Désactivé</strong> sur ce site"
@@ -68,6 +65,14 @@
   "general": {
     "message": "Général"
   },
+  "invalid_css_selector": {
+    "message": "$selector$ n'est pas un sélecteur CSS valide",
+    "placeholders": {
+      "selector": {
+        "content": "$1"
+      }
+    }
+  },
   "last_updated_at": {
     "message": "Dernière actualisation le $date$ à $time$",
     "placeholders": {
@@ -83,6 +88,14 @@
     "message": "Dernière actualisation aujourd'hui à $time$",
     "placeholders": {
       "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "line": {
+    "message": "Ligne $number$",
+    "placeholders": {
+      "number": {
         "content": "$1"
       }
     }
@@ -157,6 +170,9 @@
   },
   "subscriptionSelection_subscriptionSelector_label": {
     "message": "Veuillez choisir un abonnement dans la liste suivante :"
+  },
+  "unexpected_filter_list_header": {
+    "message": "Les en-têtes de listes de filtres ne sont pas autorisés ici"
   },
   "update_now": {
     "message": "Actualiser maintenant"

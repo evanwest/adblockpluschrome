@@ -27,16 +27,13 @@
     "message": "Setelah menutup tetingkap ini, klik (atau klik butang kanan) pada sesuatu unsur atas laman."
   },
   "description_chrome": {
-    "message": "Alat percuma penyekat iklan untuk Chrome: Menyekat iklan video menjengkelkan di YouTube, iklan Facebook, sepanduk dan banyak lagi."
+    "message": "Digunakan olehlebih 50 juta orang,penyekat ikl. yg percuma utk Chrome yg menghalang semua ikl. yg menjengkelkan,malware danpenjejak."
   },
   "description_opera": {
-    "message": "Alat percuma penyekat iklan untuk Opera: Menyekat iklan video yang menjengkelkan di YouTube, iklan Facebook, sepanduk dan banyak lagi."
+    "message": "Digunakan oleh lebih 50 juta orang, penyekat iklan yg percuma utk Chrome yg menghalang semua iklan yg menjengkelkan,malware dan penjejak."
   },
   "description_safari": {
-    "message": "Alat percuma penyekat iklan untuk Safari: Menyekat iklan video di YouTube yang menjengkelkan,  iklan Facebook, sepanduk dan banyak lagi."
-  },
-  "disable_inline": {
-    "message": "Nyahaktifkan iklan teks sebaris"
+    "message": "Digunakan oleh lebih 50 juta orang, penyekat iklan yg percuma utk Chrome yg menghalang semua iklan yg menjengkelkan,malware dan penjejak."
   },
   "disabled_for_site": {
     "message": "<strong>Dinyahaktifkan</strong> pada laman web ini"
@@ -68,6 +65,14 @@
   "general": {
     "message": "Umum"
   },
+  "invalid_css_selector": {
+    "message": "$selector$ bukan pemilih CSS (CSS selector) yang sah",
+    "placeholders": {
+      "selector": {
+        "content": "$1"
+      }
+    }
+  },
   "last_updated_at": {
     "message": "Terakhir Dikemaskini pada $time$ pada $date$",
     "placeholders": {
@@ -83,6 +88,14 @@
     "message": "Terakhir Dikemaskini pada $time$ semalam",
     "placeholders": {
       "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "line": {
+    "message": "Baris $number$",
+    "placeholders": {
+      "number": {
         "content": "$1"
       }
     }
@@ -157,6 +170,9 @@
   },
   "subscriptionSelection_subscriptionSelector_label": {
     "message": "Sila pilih langganan penapis dalam senarai berikut:"
+  },
+  "unexpected_filter_list_header": {
+    "message": "Header penapis senarai tidak dibenarkan sini"
   },
   "update_now": {
     "message": "Kemaskini sekarang"

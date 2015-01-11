@@ -27,16 +27,13 @@
     "message": "Na het sluiten van deze popup, klik (of klik met de rechtermuisknop) op het pagina-element."
   },
   "description_chrome": {
-    "message": "De gratis adblocker voor Chrome: Blokkeer vervelende video-reclames op YouTube,  advertenties op Facebook, reclame banners en nog veel meer."
+    "message": "Een gratis adblocker voor Chrome met meer dan 50 miljoen gebruikers, die ALLE vervelende advertenties, malware en tracking blokkeert"
   },
   "description_opera": {
-    "message": "De gratis adblocker voor Opera: Blokkeer vervelende video-reclames op YouTube,  advertenties op Facebook, reclame banners en nog veel meer."
+    "message": "Een gratis adblocker voor Opera met meer dan 50 miljoen gebruikers, die ALLE vervelende advertenties, malware en tracking blokkeert."
   },
   "description_safari": {
-    "message": "De gratis adblocker voor Safari: Blokkeer vervelende video-reclames op YouTube,  advertenties op Facebook, reclame banners en nog veel meer."
-  },
-  "disable_inline": {
-    "message": "Inline tekstadvertenties uitschakelen"
+    "message": "Een gratis adblocker voor Safari met meer dan 50 miljoen gebruikers, die ALLE vervelende advertenties, malware en tracking blokkeert."
   },
   "disabled_for_site": {
     "message": "<strong>Uitgeschakeld</strong> op deze site"
@@ -68,6 +65,14 @@
   "general": {
     "message": "Algemeen"
   },
+  "invalid_css_selector": {
+    "message": "$selector$ is niet een geldige CSS selector",
+    "placeholders": {
+      "selector": {
+        "content": "$1"
+      }
+    }
+  },
   "last_updated_at": {
     "message": "Laatst bijgewerkt op $time$ op $date$",
     "placeholders": {
@@ -87,6 +92,14 @@
       }
     }
   },
+  "line": {
+    "message": "Regel $number$",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      }
+    }
+  },
   "name_devbuild": {
     "message": "AdBlock Plus experimentele versie"
   },
@@ -94,7 +107,7 @@
     "message": "Klik 'OK' om alle links in het bericht te openen"
   },
   "notification_without_buttons": {
-    "message": "Klik op het bericht om de link te openen"
+    "message": "Klik op de melding om alle links erin te openen."
   },
   "options": {
     "message": "Adblock Plus opties"
@@ -120,7 +133,7 @@
     }
   },
   "stats_label_total": {
-    "message": "<strong>$number$</strong> in totaal.",
+    "message": "<strong>$number$</strong> in totaal",
     "placeholders": {
       "number": {
         "content": "$1"
@@ -157,6 +170,9 @@
   },
   "subscriptionSelection_subscriptionSelector_label": {
     "message": "Kies a.u.b. een filterabonnement uit de lijst:"
+  },
+  "unexpected_filter_list_header": {
+    "message": "Filter lijst headers zijn niet toegestaan hier"
   },
   "update_now": {
     "message": "Nu bijwerken"

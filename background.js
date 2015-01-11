@@ -43,6 +43,7 @@ var Synchronizer = require("synchronizer").Synchronizer;
 var Utils = require("utils").Utils;
 var Notification = require("notification").Notification;
 var initAntiAdblockNotification = require("antiadblockInit").initAntiAdblockNotification;
+var parseFilters = require("filterValidation").parseFilters;
 
 // Some types cannot be distinguished
 RegExpFilter.typeMap.OBJECT_SUBREQUEST = RegExpFilter.typeMap.OBJECT;
@@ -52,7 +53,7 @@ RegExpFilter.typeMap.MEDIA = RegExpFilter.typeMap.FONT = RegExpFilter.typeMap.OT
 // https://code.google.com/p/chromium/issues/detail?id=291485
 var canUseChromeNotifications = require("info").platform == "chromium"
   && "notifications" in chrome
-  && (navigator.platform.indexOf("Linux") == -1 || parseInt(require("info").applicationVersion) > 34);
+  && (navigator.platform.indexOf("Linux") == -1 || parseInt(require("info").applicationVersion, 10) > 34);
 
 var seenDataCorruption = false;
 var filterlistsReinitialized = false;
@@ -80,6 +81,11 @@ require("filterNotifier").FilterNotifier.addListener(function(action)
     if (canUseChromeNotifications)
       initChromeNotifications();
     initAntiAdblockNotification();
+
+    // The "Hide placeholders" option has been removed from the UI in 1.8.8.1285
+    // So we reset the option for users updating from older versions.
+    if (prevVersion && Services.vc.compare(prevVersion, "1.8.8.1285") < 0)
+      Prefs.hidePlaceholders = true;
   }
 
   // update browser actions when whitelisting might have changed,
@@ -112,10 +118,9 @@ var activeNotification = null;
 var contextMenuItem = {
   title: ext.i18n.getMessage("block_element"),
   contexts: ["image", "video", "audio"],
-  onclick: function(srcUrl, page)
+  onclick: function(page)
   {
-    if (srcUrl)
-      page.sendMessage({type: "clickhide-new-filter", filter: srcUrl});
+    page.sendMessage({type: "clickhide-new-filter"});
   }
 };
 
@@ -259,32 +264,9 @@ Prefs.addListener(function(name)
     refreshIconAndContextMenuForAllPages();
 });
 
-/**
-  * Opens options page or focuses an existing one, within the last focused window.
-  * @param {Function} callback  function to be called with the
-                                Page object of the options page
-  */
-function openOptions(callback)
-{
-  ext.pages.query({lastFocusedWindow: true}, function(pages)
-  {
-    var optionsUrl = ext.getURL("options.html");
-
-    for (var i = 0; i < pages.length; i++)
-    {
-      var page = pages[i];
-      if (page.url == optionsUrl)
-      {
-        page.activate();
-        if (callback)
-          callback(page);
-        return;
-      }
-    }
-
-    ext.pages.open(optionsUrl, callback);
-  });
-}
+// TODO: This hack should be removed, however currently
+// the firstRun page still calls backgroundPage.openOptions()
+openOptions = ext.showOptions;
 
 function prepareNotificationIconAndPopup()
 {
@@ -547,14 +529,24 @@ ext.onMessage.addListener(function (msg, sender, sendResponse)
       }
       break;
     case "add-filters":
-      if (msg.filters && msg.filters.length)
+      var filters;
+      try
       {
-        for (var i = 0; i < msg.filters.length; i++)
-          FilterStorage.addFilter(Filter.fromText(msg.filters[i]));
+        filters = parseFilters(msg.text);
       }
+      catch (error)
+      {
+        sendResponse({status: "invalid", error: error});
+        break;
+      }
+
+      for (var i = 0; i < filters.length; i++)
+        FilterStorage.addFilter(filters[i]);
+
+      sendResponse({status: "ok"});
       break;
     case "add-subscription":
-      openOptions(function(page)
+      ext.showOptions(function(page)
       {
         page.sendMessage(msg);
       });

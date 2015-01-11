@@ -27,16 +27,13 @@
     "message": "Tras cerrar este menú desplegable, pulse (o con botón derecho) en un elemento de la página."
   },
   "description_chrome": {
-    "message": "La herramienta gratuita para bloquear publicidad en Chrome: anuncios en vídeos de YouTube y en Facebook, banners, y mucho más."
+    "message": "Un bloqueador gratuito para Chrome de TODA la publicidad molesta, el malware y el tracking, con más de 50 millones de usuarios."
   },
   "description_opera": {
-    "message": "La herramienta gratuita para bloquear publicidad en Opera: anuncios en vídeos de YouTube y en Facebook, banners, y mucho más."
+    "message": "Un bloqueador gratuito para Opera de TODA la publicidad molesta, el malware y el tracking, con más de 50 millones de usuarios."
   },
   "description_safari": {
-    "message": "La herramienta gratuita para bloquear publicidad en Safari: anuncios en vídeos de YouTube y en Facebook, banners, y mucho más."
-  },
-  "disable_inline": {
-    "message": "Desactivar anuncios de texto en línea"
+    "message": "Un bloqueador gratuito para Safari de TODA la publicidad molesta, el malware y el tracking, con más de 50 millones de usuarios."
   },
   "disabled_for_site": {
     "message": "<strong>Desactivado</strong> en este sitio"
@@ -68,6 +65,14 @@
   "general": {
     "message": "General"
   },
+  "invalid_css_selector": {
+    "message": "$selector$ no es un selector CSS válido",
+    "placeholders": {
+      "selector": {
+        "content": "$1"
+      }
+    }
+  },
   "last_updated_at": {
     "message": "Última actualización a las $time$ del $date$",
     "placeholders": {
@@ -83,6 +88,14 @@
     "message": "Última actualización a las $time$ de hoy",
     "placeholders": {
       "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "line": {
+    "message": "Línea $number$",
+    "placeholders": {
+      "number": {
         "content": "$1"
       }
     }
@@ -157,6 +170,9 @@
   },
   "subscriptionSelection_subscriptionSelector_label": {
     "message": "Por favor elija una suscripción de filtros de la lista:"
+  },
+  "unexpected_filter_list_header": {
+    "message": "Los encabezados de listas de filtros no se permiten aquí"
   },
   "update_now": {
     "message": "Actualizar ahora"

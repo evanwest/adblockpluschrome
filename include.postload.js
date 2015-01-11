@@ -24,6 +24,30 @@ var highlightedElementsSelector = null;
 var clickHideFiltersDialog = null;
 var lastRightClickEvent = null;
 
+function escapeChar(chr)
+{
+  var code = chr.charCodeAt(0);
+
+  // Control characters and leading digits must be escaped based on
+  // their char code in CSS. Moreover, curly brackets aren't allowed
+  // in elemhide filters, and therefore must be escaped based on their
+  // char code as well.
+  if (code <= 0x1F || code == 0x7F || /[\d\{\}]/.test(chr))
+    return "\\" + code.toString(16) + " ";
+
+  return "\\" + chr;
+}
+
+function quote(value)
+{
+  return '"' + value.replace(/["\\\{\}\x00-\x1F\x7F]/g, escapeChar) + '"';
+}
+
+function escapeCSS(s)
+{
+  return s.replace(/^[\d\-]|[^\w\-\u0080-\uFFFF]/g, escapeChar);
+}
+
 function supportsShadowRoot(element)
 {
   if (!("createShadowRoot" in element))
@@ -50,6 +74,14 @@ function supportsShadowRoot(element)
   clone.shadowRoot.appendChild(shadow);
 
   return shadow.getDistributedNodes()[0] == child;
+}
+
+function getOriginalStyle(element)
+{
+  if ("_originalStyle" in element)
+    return element._originalStyle;
+
+  return element.getAttribute("style");
 }
 
 function highlightElement(element, shadowColor, backgroundColor)
@@ -83,6 +115,8 @@ function highlightElement(element, shadowColor, backgroundColor)
   {
     var originalBoxShadow = element.style.getPropertyValue("box-shadow");
     var originalBackgroundColor = element.style.getPropertyValue("background-color");
+
+    element._originalStyle = getOriginalStyle(element);
 
     element.style.setProperty("box-shadow", boxShadow, "important");
     element.style.setProperty("background-color", backgroundColor, "important");
@@ -151,6 +185,106 @@ function unhighlightElements() {
   }
 }
 
+function getURLsFromObjectElement(element)
+{
+  var url = element.getAttribute("data");
+  if (url)
+    return [resolveURL(url)];
+
+  for (var i = 0; i < element.children.length; i++)
+  {
+    var child = element.children[i];
+    if (child.localName != "param")
+      continue;
+
+    var name = child.getAttribute("name");
+    if (name != "movie"  && // Adobe Flash
+        name != "source" && // Silverlight
+        name != "src"    && // Real Media + Quicktime
+        name != "FileName") // Windows Media
+      continue;
+
+    var value = child.getAttribute("value");
+    if (!value)
+      continue;
+
+    return [resolveURL(value)];
+  }
+
+  return [];
+}
+
+function getURLsFromAttributes(element)
+{
+  var urls = [];
+
+  if (element.src)
+    urls.push(element.src);
+
+  if (element.srcset)
+  {
+    var candidates = element.srcset.split(",");
+    for (var i = 0; i < candidates.length; i++)
+    {
+      var url = candidates[i].trim().replace(/\s+\S+$/, "");
+      if (url)
+        urls.push(resolveURL(url));
+    }
+  }
+
+  return urls;
+}
+
+function getURLsFromMediaElement(element)
+{
+  var urls = getURLsFromAttributes(element);
+
+  for (var i = 0; i < element.children.length; i++)
+  {
+    var child = element.children[i];
+    if (child.localName == "source" || child.localName == "track")
+      urls.push.apply(urls, getURLsFromAttributes(child));
+  }
+
+  if (element.poster)
+    urls.push(element.poster);
+
+  return urls;
+}
+
+function getURLsFromElement(element) {
+  switch (element.localName)
+  {
+    case "object":
+      return getURLsFromObjectElement(element);
+
+    case "video":
+    case "audio":
+    case "picture":
+      return getURLsFromMediaElement(element);
+  }
+
+  return getURLsFromAttributes(element);
+}
+
+function isBlockable(element)
+{
+  if (element.id)
+    return true;
+  if (element.classList.length > 0)
+    return true;
+  if (getURLsFromElement(element).length > 0)
+    return true;
+
+  // We only generate filters based on the "style" attribute,
+  // if this is the only way we can generate a filter, and
+  // only if there are at least two CSS properties defined.
+  if (/:.+:/.test(getOriginalStyle(element)))
+    return true;
+
+  return false;
+}
+
 // Gets the absolute position of an element by walking up the DOM tree,
 // adding up offsets.
 // I hope there's a better way because it just seems absolutely stupid
@@ -174,18 +308,28 @@ function addElementOverlay(elt) {
 
   // If element doesn't have at least one of class name, ID or URL, give up
   // because we don't know how to construct a filter rule for it
-  var url = getElementURL(elt);
-  if(!elt.className && !elt.id && !url)
+  if(!isBlockable(elt))
     return;
+
+  // If the element isn't rendered (since its or one of its ancestor's
+  // "display" property is "none"), the overlay wouldn't match the element.
+  if (!elt.offsetParent)
+    return;
+
   var thisStyle = getComputedStyle(elt, null);
   var overlay = document.createElement('div');
   overlay.prisoner = elt;
-  overlay.prisonerURL = url;
   overlay.className = "__adblockplus__overlay";
-  overlay.setAttribute('style', 'opacity:0.4; background-color:#ffffff; display:inline-box; ' + 'width:' + thisStyle.width + '; height:' + thisStyle.height + '; position:absolute; overflow:hidden; -webkit-box-sizing:border-box; z-index: 99999');
+  overlay.setAttribute('style', 'opacity:0.4; background-color:#ffffff; display:inline-box; ' + 'width:' + thisStyle.width + '; height:' + thisStyle.height + '; position:absolute; overflow:hidden; -webkit-box-sizing:border-box;');
   var pos = getAbsolutePosition(elt);
   overlay.style.left = pos[0] + "px";
   overlay.style.top = pos[1] + "px";
+
+  if (thisStyle.position != "static")
+    overlay.style.zIndex = thisStyle.zIndex;
+  else
+    overlay.style.zIndex = getComputedStyle(elt.offsetParent).zIndex;
+
   // elt.parentNode.appendChild(overlay, elt);
   document.body.appendChild(overlay);
   return overlay;
@@ -197,11 +341,7 @@ function clickHide_showDialog(left, top, filters)
 {
   // If we are already selecting, abort now
   if (clickHide_activated || clickHideFiltersDialog)
-  {
-    var savedElement = (currentElement.prisoner ? currentElement.prisoner : currentElement);
-    clickHide_deactivate();
-    currentElement = savedElement;
-  }
+    clickHide_deactivate(true);
 
   clickHide_filters = filters;
 
@@ -241,29 +381,29 @@ function clickHide_activate() {
     clickHide_deactivate();
 
   // Add overlays for elements with URLs so user can easily click them
-  var elts = document.querySelectorAll('object,embed,img,iframe');
+  var elts = document.querySelectorAll('object,embed,img,iframe,video,audio,picture');
   for(var i=0; i<elts.length; i++)
     addElementOverlay(elts[i]);
 
   clickHide_activated = true;
-  document.addEventListener("mouseover", clickHide_mouseOver, false);
-  document.addEventListener("mouseout", clickHide_mouseOut, false);
-  document.addEventListener("click", clickHide_mouseClick, false);
-  document.addEventListener("keydown", clickHide_keyDown, false);
+  document.addEventListener("mouseover", clickHide_mouseOver, true);
+  document.addEventListener("mouseout", clickHide_mouseOut, true);
+  document.addEventListener("click", clickHide_mouseClick, true);
+  document.addEventListener("keydown", clickHide_keyDown, true);
 }
 
 // Called when user has clicked on something and we are waiting for confirmation
 // on whether the user actually wants these filters
 function clickHide_rulesPending() {
   clickHide_activated = false;
-  document.removeEventListener("mouseover", clickHide_mouseOver, false);
-  document.removeEventListener("mouseout", clickHide_mouseOut, false);
-  document.removeEventListener("click", clickHide_mouseClick, false);
-  document.removeEventListener("keydown", clickHide_keyDown, false);
+  document.removeEventListener("mouseover", clickHide_mouseOver, true);
+  document.removeEventListener("mouseout", clickHide_mouseOut, true);
+  document.removeEventListener("click", clickHide_mouseClick, true);
+  document.removeEventListener("keydown", clickHide_keyDown, true);
 }
 
 // Turn off click-to-hide
-function clickHide_deactivate()
+function clickHide_deactivate(keepOverlays)
 {
   if (clickHideFiltersDialog)
   {
@@ -271,29 +411,30 @@ function clickHide_deactivate()
     clickHideFiltersDialog = null;
   }
 
-  if(currentElement) {
-    currentElement.removeEventListener("contextmenu", clickHide_elementClickHandler, false);
-    unhighlightElements();
-    unhighlightElement(currentElement);
-    currentElement = null;
-    clickHideFilters = null;
-  }
-  unhighlightElements();
-
   clickHide_activated = false;
   clickHide_filters = null;
   if(!document)
     return; // This can happen inside a nuked iframe...I think
-  document.removeEventListener("mouseover", clickHide_mouseOver, false);
-  document.removeEventListener("mouseout", clickHide_mouseOut, false);
-  document.removeEventListener("click", clickHide_mouseClick, false);
-  document.removeEventListener("keydown", clickHide_keyDown, false);
+  document.removeEventListener("mouseover", clickHide_mouseOver, true);
+  document.removeEventListener("mouseout", clickHide_mouseOut, true);
+  document.removeEventListener("click", clickHide_mouseClick, true);
+  document.removeEventListener("keydown", clickHide_keyDown, true);
 
-  // Remove overlays
-  // For some reason iterating over the array returend by getElementsByClassName() doesn't work
-  var elt;
-  while(elt = document.querySelector('.__adblockplus__overlay'))
-    elt.parentNode.removeChild(elt);
+  if (!keepOverlays)
+  {
+    if (currentElement) {
+      currentElement.removeEventListener("contextmenu",  clickHide_elementClickHandler, true);
+      unhighlightElements();
+      unhighlightElement(currentElement);
+      currentElement = null;
+      clickHideFilters = null;
+    }
+    unhighlightElements();
+
+    var overlays = document.getElementsByClassName("__adblockplus__overlay");
+    while (overlays.length > 0)
+      overlays[0].parentNode.removeChild(overlays[0]);
+  }
 }
 
 function clickHide_elementClickHandler(ev) {
@@ -309,7 +450,7 @@ function clickHide_mouseOver(e)
     return;
 
   var target = e.target;
-  while (target.parentNode && !(target.id || target.className || target.src))
+  while (target.parentNode && !isBlockable(target))
     target = target.parentNode;
   if (target == document.documentElement || target == document.body)
     target = null;
@@ -319,7 +460,7 @@ function clickHide_mouseOver(e)
     currentElement = target;
 
     highlightElement(target, "#d6d84b", "#f8fa47");
-    target.addEventListener("contextmenu", clickHide_elementClickHandler, false);
+    target.addEventListener("contextmenu", clickHide_elementClickHandler, true);
   }
 }
 
@@ -330,7 +471,7 @@ function clickHide_mouseOut(e)
     return;
 
   unhighlightElement(currentElement);
-  currentElement.removeEventListener("contextmenu", clickHide_elementClickHandler, false);
+  currentElement.removeEventListener("contextmenu", clickHide_elementClickHandler, true);
 }
 
 // Selects the currently hovered-over filter or cancels selection
@@ -340,7 +481,14 @@ function clickHide_keyDown(e)
      clickHide_mouseClick(e);
   else if (!e.ctrlKey && !e.altKey && !e.shiftKey && e.keyCode == 27 /*DOM_VK_ESCAPE*/)
   {
-    clickHide_deactivate();
+    ext.backgroundPage.sendMessage(
+    {
+      type: "forward",
+      payload:
+      {
+        type: "clickhide-deactivate"
+      }
+    });
     e.preventDefault();
     e.stopPropagation();
   }
@@ -355,85 +503,73 @@ function clickHide_mouseClick(e)
     return;
 
   var elt = currentElement;
-  var url = null;
-  if (currentElement.className && currentElement.className == "__adblockplus__overlay")
-  {
+  if (currentElement.classList.contains("__adblockplus__overlay"))
     elt = currentElement.prisoner;
-    url = currentElement.prisonerURL;
-  }
-  else if (elt.src)
-    url = elt.src;
-
-  // Construct filters. The popup will retrieve these.
-  // Only one ID
-  var elementId = elt.id ? elt.id.split(' ').join('') : null;
-  // Can have multiple classes, and there might be extraneous whitespace
-  var elementClasses = null;
-  if (elt.className)
-    elementClasses = elt.className.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '').split(' ');
 
   clickHideFilters = new Array();
   selectorList = new Array();
-  if (elementId)
+
+  var addSelector = function(selector)
   {
-    clickHideFilters.push(document.domain + "###" + elementId);
-    selectorList.push("#" + elementId);
-  }
-  if (elementClasses && elementClasses.length > 0)
-  {
-    var selector = elementClasses.map(function(elClass)
-    {
-      return "." + elClass.replace(/([^\w-])/, "\\$1");
-    }).join("");
+    if (selectorList.indexOf(selector) != -1)
+      return;
 
     clickHideFilters.push(document.domain + "##" + selector);
     selectorList.push(selector);
-  }
-  if (url)
+  };
+
+  if (elt.id)
+    addSelector("#" + escapeCSS(elt.id));
+
+  if (elt.classList.length > 0)
   {
-    clickHideFilters.push(url.replace(/^[\w\-]+:\/+(?:www\.)?/, "||"));
-    selectorList.push('[src="' + elt.getAttribute("src") + '"]');
+    var selector = "";
+
+    for (var i = 0; i < elt.classList.length; i++)
+      selector += "." + escapeCSS(elt.classList[i]);
+
+    addSelector(selector);
+  }
+
+  var urls = getURLsFromElement(elt);
+  for (var i = 0; i < urls.length; i++)
+  {
+    var url = urls[i];
+
+    if (/^https?:/i.test(url))
+    {
+      var filter = url.replace(/^[\w\-]+:\/+(?:www\.)?/, "||");
+
+      if (clickHideFilters.indexOf(filter) == -1)
+        clickHideFilters.push(filter);
+
+      continue;
+    }
+
+    if (url == elt.src)
+      addSelector(escapeCSS(elt.localName) + '[src=' + quote(elt.getAttribute("src")) + ']');
+  }
+
+  // as last resort, create a filter based on inline styles
+  if (clickHideFilters.length == 0)
+  {
+    var style = getOriginalStyle(elt);
+    if (style)
+      addSelector(escapeCSS(elt.localName) + '[style=' + quote(style) + ']');
   }
 
   // Show popup
   clickHide_showDialog(e.clientX, e.clientY, clickHideFilters);
 
-  // Highlight the unlucky elements
-  // Restore currentElement's box-shadow and bgcolor so that highlightElements won't save those
-  unhighlightElement(currentElement);
   // Highlight the elements specified by selector in yellow
-  highlightElements(selectorList.join(","));
+  if (selectorList.length > 0)
+    highlightElements(selectorList.join(","));
   // Now, actually highlight the element the user clicked on in red
   highlightElement(currentElement, "#fd1708", "#f6a1b5");
 
   // Make sure the browser doesn't handle this click
   e.preventDefault();
   e.stopPropagation();
-}
-
-// Extracts source URL from an IMG, OBJECT, EMBED, or IFRAME
-function getElementURL(elt) {
-  // Check children of object nodes for "param" nodes with name="movie" that specify a URL
-  // in value attribute
-  var url;
-  if(elt.localName.toUpperCase() == "OBJECT" && !(url = elt.getAttribute("data"))) {
-    // No data attribute, look in PARAM child tags for a URL for the swf file
-    var params = elt.querySelectorAll("param[name=\"movie\"]");
-    // This OBJECT could contain an EMBED we already nuked, in which case there's no URL
-    if(params[0])
-      url = params[0].getAttribute("value");
-    else {
-      params = elt.querySelectorAll("param[name=\"src\"]");
-      if(params[0])
-        url = params[0].getAttribute("value");
-    }
-
-    if (url)
-      url = resolveURL(url);
-  } else if(!url) {
-    url = elt.src || elt.href;
-  }
-  return url;
 }
 
 // This function Copyright (c) 2008 Jeni Tennison, from jquery.uri.js
@@ -492,14 +628,11 @@ function checkForYTIDMetadata(document)
   }
 }
 
-
-
-
-// Content scripts are apparently invoked on non-HTML documents, so we have to
-// check for that before doing stuff. |document instanceof HTMLDocument| check
-// will fail on some sites like planet.mozilla.org because WebKit creates
-// Document instances for XHTML documents, have to test the root element.
-if (document instanceof HTMLDocument)
+// In Chrome 37-40, the document_end content script (this one) runs properly, while the
+// document_start content scripts (that defines ext) might not. Check whether variable ext
+// exists before continuing to avoid "Uncaught ReferenceError: ext is not defined".
+// See https://crbug.com/416907
+if ("ext" in window && document instanceof HTMLDocument)
 {
   // Use a contextmenu handler to save the last element the user right-clicked on.
   // To make things easier, we actually save the DOM event.
@@ -507,7 +640,7 @@ if (document instanceof HTMLDocument)
   // DOM element.
   document.addEventListener('contextmenu', function(e) {
     lastRightClickEvent = e;
-  }, false);
+  }, true);
 
   document.addEventListener("click", function(event)
   {
@@ -558,8 +691,8 @@ if (document instanceof HTMLDocument)
       title = url;
 
     // Trim spaces in title and URL
-    title = title.replace(/^\s+/, "").replace(/\s+$/, "");
-    url = url.replace(/^\s+/, "").replace(/\s+$/, "");
+    title = title.trim();
+    url = url.trim();
     if (!/^(https?|ftp):/.test(url))
       return;
 
@@ -584,50 +717,12 @@ if (document instanceof HTMLDocument)
         clickHide_deactivate();
         break;
       case "clickhide-new-filter":
-        // The request is received by all frames, so ignore it if we're not the frame the
-        // user right-clicked in
-        if(!lastRightClickEvent)
-          return;
-        // We hope the URL we are given is the same as the one in the element referenced
-        // by lastRightClickEvent.target. If not, we just discard
-        var target = lastRightClickEvent.target;
-        var url = target.src;
-        // If we don't have the element with a src URL same as the filter, look for it.
-        // Chrome's context menu API is terrible. Why can't it give us the friggin' element
-        // to start with?
-        if(msg.filter !== url)
+        if(lastRightClickEvent)
         {
-          // Grab all elements with a src attribute.
-          // This won't work for all object/embed tags, but the context menu API doesn't
-          // work on those, so we're OK for now.
-          var elts = document.querySelectorAll('[src]');
-          for(var i=0; i<elts.length; i++) {
-            url = elts[i].src;
-            if(msg.filter === url)
-            {
-              // This is hopefully our element. In case of multiple elements
-              // with the same src, only one will be highlighted.
-              target = elts[i];
-              break;
-            }
-          }
-        }
-        // Following test will be true if we found the element with the filter URL
-        if(msg.filter === url)
-        {
-          // This request would have come from the chrome.contextMenu handler, so we
-          // simulate the user having chosen the element to get rid of via the usual means.
           clickHide_activated = true;
-          // FIXME: clickHideFilters is erased in clickHide_mouseClick anyway, so why set it?
-          clickHideFilters = [msg.filter];
-          // Coerce red highlighted overlay on top of element to remove.
-          // TODO: Wow, the design of the clickHide stuff is really dumb - gotta fix it sometime
-          currentElement = addElementOverlay(target);
-          // clickHide_mouseOver(lastRightClickEvent);
+          currentElement = addElementOverlay(lastRightClickEvent.target);
           clickHide_mouseClick(lastRightClickEvent);
         }
-        else
-          console.log("clickhide-new-filter: URLs don't match. Couldn't find that element.", request.filter, url, lastRightClickEvent.target.src);
         break;
       case "clickhide-init":
         if (clickHideFiltersDialog)
@@ -642,19 +737,19 @@ if (document instanceof HTMLDocument)
       case "clickhide-move":
         if (clickHideFiltersDialog)
         {
-          clickHideFiltersDialog.style.left = (parseInt(clickHideFiltersDialog.style.left, 10) + request.x) + "px";
-          clickHideFiltersDialog.style.top = (parseInt(clickHideFiltersDialog.style.top, 10) + request.y) + "px";
+          clickHideFiltersDialog.style.left = (parseInt(clickHideFiltersDialog.style.left, 10) + msg.x) + "px";
+          clickHideFiltersDialog.style.top = (parseInt(clickHideFiltersDialog.style.top, 10) + msg.y) + "px";
         }
         break;
       case "clickhide-close":
-        if (clickHideFiltersDialog)
+        if (clickHideFiltersDialog && msg.remove)
         {
           // Explicitly get rid of currentElement
-          if (msg.remove && currentElement && currentElement.parentNode)
-            currentElement.parentNode.removeChild(currentElement);
-
-          clickHide_deactivate();
+          var element = currentElement.prisoner || currentElement;
+          if (element && element.parentNode)
+            element.parentNode.removeChild(element);
         }
+        clickHide_deactivate();
         break;
       case "check-context":
 	checkContext(document);

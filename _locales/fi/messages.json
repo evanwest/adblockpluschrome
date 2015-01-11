@@ -18,25 +18,13 @@
     "message": "Hyväksy muutokset"
   },
   "block_element": {
-    "message": "Estä Elementti"
+    "message": "Estä elementti"
   },
   "cancel": {
     "message": "Peruuta"
   },
   "clickhide_instructions": {
     "message": "Tämän ikkunan sulkemisen jälkeen klikkaa (tai oikea klikkaa) elementtiä jonka haluat estää."
-  },
-  "description_chrome": {
-    "message": "Ilmainen Adblock työkalu Chromelle: Estää ärsyttävät Youtuben videomainokset, Facebookin mainokset, bannerit ja paljon muuta."
-  },
-  "description_opera": {
-    "message": "Ilmainen Adblock työkalu Operalle: Estää ärsyttävät Youtuben videomainokset, Facebookin mainokset, bannerit ja paljon muuta."
-  },
-  "description_safari": {
-    "message": "Ilmainen Adblock työkalu Safarille: Estää ärsyttävät Youtuben videomainokset, Facebookin mainokset, bannerit ja paljon muuta."
-  },
-  "disable_inline": {
-    "message": "Estä tekstimainokset"
   },
   "disabled_for_site": {
     "message": "<strong>Poistettu</strong> tältä sivulta"
@@ -68,6 +56,14 @@
   "general": {
     "message": "Yleiset"
   },
+  "invalid_css_selector": {
+    "message": "$selector$ ei ole kelvollinen CSS-valitsin",
+    "placeholders": {
+      "selector": {
+        "content": "$1"
+      }
+    }
+  },
   "last_updated_at": {
     "message": "Viimeksi päivitetty $time$ $date$",
     "placeholders": {
@@ -83,6 +79,14 @@
     "message": "Viimeksi päivitetty $time$ tänään",
     "placeholders": {
       "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "line": {
+    "message": "Rivi $number$",
+    "placeholders": {
+      "number": {
         "content": "$1"
       }
     }
@@ -157,6 +161,9 @@
   },
   "subscriptionSelection_subscriptionSelector_label": {
     "message": "Valitse suodatintilaus listasta:"
+  },
+  "unexpected_filter_list_header": {
+    "message": "Suodatin-listan otsakkeet eivät ole sallittuja tässä"
   },
   "update_now": {
     "message": "Päivitä nyt"

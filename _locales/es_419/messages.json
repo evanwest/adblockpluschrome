@@ -27,16 +27,13 @@
     "message": "Después de cerrar esta ventana, haga click (o click derecho) en un elemento de la página."
   },
   "description_chrome": {
-    "message": "La herramienta gratuita para bloquear publicidad en Chrome: Bloquea molestos anuncios en YouTube, anuncios de Facebook, banners, y mucho más."
+    "message": "Utilizado por más 50 millones de personas, un bloqueador de anuncios gratuito para Chrome que bloquea todos los anuncios molestos, malware y seguimiento."
   },
   "description_opera": {
-    "message": "La herramienta gratuita para bloquear publicidad en Opera: Bloquea molestos anuncios en YouTube, anuncios de Facebook, banners, y mucho más."
+    "message": "Utilizado por más 50 millones de personas, un bloqueador de anuncios gratuito para Opera que bloquea todos los anuncios molestos, malware y seguimiento."
   },
   "description_safari": {
-    "message": "La herramienta gratuita para bloquear publicidad en Safari: Bloquea molestos anuncios en YouTube, anuncios de Facebook, banners, y mucho más."
-  },
-  "disable_inline": {
-    "message": "Desactivar anuncios en línea con el texto"
+    "message": "Utilizado por más de 50 millones de usuarios, un bloqueador de anuncios gratuito para Safari que bloquea TODOS los anuncios molestos, malware y tracking."
   },
   "disabled_for_site": {
     "message": "<strong>Deshabilitado</strong> en este sitio"
@@ -68,6 +65,14 @@
   "general": {
     "message": "General"
   },
+  "invalid_css_selector": {
+    "message": "$selector$ no es un selecor CSS válido",
+    "placeholders": {
+      "selector": {
+        "content": "$1"
+      }
+    }
+  },
   "last_updated_at": {
     "message": "Última actualización a las $time$ del $date$",
     "placeholders": {
@@ -83,6 +88,14 @@
     "message": "Última actualización a las $time$ de hoy",
     "placeholders": {
       "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "line": {
+    "message": "Línea $number$",
+    "placeholders": {
+      "number": {
         "content": "$1"
       }
     }
@@ -157,6 +170,9 @@
   },
   "subscriptionSelection_subscriptionSelector_label": {
     "message": "Por favor selecciona una suscripción de filtros de la lista:"
+  },
+  "unexpected_filter_list_header": {
+    "message": "Las cabeceras de la lista del filtro no son permitidas aquí"
   },
   "update_now": {
     "message": "Actualizar ahora"

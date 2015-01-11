@@ -6,13 +6,13 @@
     "message": "اضافه کردن سایت"
   },
   "add_filter_button": {
-    "message": "افزودن فیلتر"
+    "message": "اضافه کردن فیلتر"
   },
   "add_filters_msg": {
     "message": "اضافه کردن فیلتر (ها) ؟"
   },
   "add_your_own_filters": {
-    "message": "افزودن فیلترهای خود"
+    "message": "اضافه کردن فیلتر خودتون"
   },
   "apply_changes": {
     "message": "اعمال تغییرات"
@@ -21,28 +21,16 @@
     "message": "مسدود کردن این عنصر"
   },
   "cancel": {
-    "message": "لغو"
+    "message": "بیخیال"
   },
   "clickhide_instructions": {
     "message": "پس از بسته شدن این پنجره، روی بخشی از صفحه کلیک (یا راست کلیک) کن."
   },
-  "description_chrome": {
-    "message": "با این ابزار رایگان برای اپرا : ویدئو های تبلیغاتی در یوتیوب، تبلیغات فیس بوک، آگهی ها و خیلی چیزهای دیگه... مسدود خواهند شد."
-  },
-  "description_opera": {
-    "message": "با این ابزار رایگان برای اپرا : ویدئو های تبلیغاتی در یوتیوب، تبلیغات فیس بوک، آگهی ها و خیلی چیزهای دیگه... مسدود خواهند شد."
-  },
-  "description_safari": {
-    "message": "با این ابزار رایگان برای سافاری: ویدئو های تبلیغاتی در یوتیوب، تبلیغات فیس بوک، آگهی ها و خیلی چیزهای دیگه... مسدود خواهند شد."
-  },
-  "disable_inline": {
-    "message": "غیرفعال کردن تبلیغات متنی"
-  },
   "disabled_for_site": {
-    "message": "<strong>غیر فعال</strong> در این سایت"
+    "message": "<strong>غیرفعال باشد</strong> توی این سایت"
   },
   "disabled_for_these_domains": {
-    "message": "Adblock پلاس برای دامنه های زیر غیرفعال شده است. شما می توانید یک دامنه یا از طریق آیکون Adblock پلاس در نوار آدرس یا دامنه (نه آدرس) را در کادر تایپ کردن و کلیک بر روی دکمه \"افزودن دامنه\" اضافه کنید."
+    "message": "این افزونه در سایت های زیر غیرفعاله. برای اضافه کردن یک سایت می توانید روی آیکون Adblock Plus در نوارآدرس کلیک کنید یا دامنه اون سایت (نه آدرس دقیق) را در این جعبه بنویسید و دکمه «اضافه کردن سایت» را بزنید."
   },
   "easy_create_filter": {
     "message": "مسدود کردن این عنصر"
@@ -60,7 +48,7 @@
     "message": "لیست فیلتر"
   },
   "filter_must_follow_syntax": {
-    "message": "فیلتر خود را باید <a> ترکیب فیلتر Adblock پلاس</a> را دنبال کنید."
+    "message": "فیلتر خود را باید <a> ترکیب فیلتر Adblock Plus</a> را دنبال کنید."
   },
   "found_a_bug": {
     "message": "باگ پیدا کردی؟ می خوای Adblock Plus رو به زبون خودتون ترجمه کنی؟ <a>فایل درخواست اینجاست</a>."
@@ -68,8 +56,16 @@
   "general": {
     "message": "صفحه اصلی"
   },
+  "invalid_css_selector": {
+    "message": "$selector$ انتخابگر استایل معتبر نیست",
+    "placeholders": {
+      "selector": {
+        "content": "$1"
+      }
+    }
+  },
   "last_updated_at": {
-    "message": "آخرین بروز رسانی در $time$ در $date$",
+    "message": "آخرین ارتقاء در زمان $time$ و تاریخ $date$",
     "placeholders": {
       "date": {
         "content": "$2"
@@ -80,15 +76,23 @@
     }
   },
   "last_updated_at_today": {
-    "message": "آخرین بروز رسانی در $time$ امروز",
+    "message": "آخرین ارتقاء در ساعت $time$ امروز",
     "placeholders": {
       "time": {
         "content": "$1"
       }
     }
   },
+  "line": {
+    "message": "خط $number$",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      }
+    }
+  },
   "name_devbuild": {
-    "message": "توسعه ساخت AdBlock"
+    "message": "توسعه ساخت Adblock Plus"
   },
   "notification_with_buttons": {
     "message": "برای باز شدن همه لینک های این هشدار ، روی OK کلیک کنید."
@@ -139,7 +143,7 @@
     "message": "دانلود Adblock Plus"
   },
   "stats_share_message": {
-    "message": "من $number$ تبلیغات و انتقالها رو مسدود کردم ، باتشکر از Adblock.",
+    "message": "من $number$ تبلیغات و انتقالها رو مسدود کردم ، باتشکر از Adblock Plus.",
     "placeholders": {
       "number": {
         "content": "$1"
@@ -156,7 +160,10 @@
     "message": "تبلیغات مسدود شده"
   },
   "subscriptionSelection_subscriptionSelector_label": {
-    "message": "لطفا اشتراک فیلتر را از لیست انتخاب کنید:"
+    "message": "یک اشتراک فیلتر از لیست زیر انتخاب کنید :"
+  },
+  "unexpected_filter_list_header": {
+    "message": "فیلتر لیست هدر ها ، اینجا مجاز نیست"
   },
   "update_now": {
     "message": "آپدیت کن"

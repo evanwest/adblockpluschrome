@@ -27,16 +27,13 @@
     "message": "Nachdem dieses Fenster geschlossen ist, klicken Sie ein Element auf der Seite an, welches Sie blockieren wollen."
   },
   "description_chrome": {
-    "message": "Der kostenlose Werbeblocker für Chrome: Blockiert nervige Videowerbung auf YouTube, Facebook-Werbung, Werbebanner und vieles mehr."
+    "message": "Mit über 50 Millionen Benutzern, ein kostenloser Werbeblocker für Chrome der ALLE nervende Werbung, Malware und Tracking blockiert."
   },
   "description_opera": {
-    "message": "Der kostenlose Werbeblocker für Opera: Blockiert nervige Videowerbung auf YouTube, Facebook-Werbung, Werbebanner und vieles mehr."
+    "message": "Mit über 50 Millionen Benutzern, ein kostenloser Werbeblocker für Opera der ALLE nervende Werbung, Malware und Tracking blockiert."
   },
   "description_safari": {
-    "message": "Der kostenlose Werbeblocker für Safari: Blockiert nervige Videowerbung auf YouTube, Facebook-Werbung, Werbebanner und vieles mehr."
-  },
-  "disable_inline": {
-    "message": "Blockiere Inline Text Werbung"
+    "message": "Mit über 50 Millionen Benutzern, ein kostenloser Werbeblocker für Safari der ALLE nervende Werbung, Malware und Tracking blockiert."
   },
   "disabled_for_site": {
     "message": "Auf dieser Seite <strong>deaktiviert</strong>"
@@ -68,6 +65,14 @@
   "general": {
     "message": "Allgemein"
   },
+  "invalid_css_selector": {
+    "message": "$selector$ ist keine gültige CSS Auswahl",
+    "placeholders": {
+      "selector": {
+        "content": "$1"
+      }
+    }
+  },
   "last_updated_at": {
     "message": "Zuletzt aktualisiert: $date$ um $time$",
     "placeholders": {
@@ -83,6 +88,14 @@
     "message": "Zuletzt aktualisiert: heute um $time$",
     "placeholders": {
       "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "line": {
+    "message": "Zeile $number$",
+    "placeholders": {
+      "number": {
         "content": "$1"
       }
     }
@@ -150,13 +163,16 @@
     "message": "Diese Statistiken teilen"
   },
   "stats_show_iconnumber": {
-    "message": "Anzahl im Symbol anzeigen"
+    "message": "Anzahl im Icon anzeigen"
   },
   "stats_title": {
     "message": "Blockierte Werbeanzeigen"
   },
   "subscriptionSelection_subscriptionSelector_label": {
     "message": "Bitte wählen Sie ein Filterabonnement aus der Liste aus:"
+  },
+  "unexpected_filter_list_header": {
+    "message": "Filterlisten-Header sind hier nicht erlaubt"
   },
   "update_now": {
     "message": "Jetzt aktualisieren"

@@ -33,7 +33,7 @@ function checkCollapse(element)
   {
     // This element failed loading, did we block it?
     var url = element.src;
-    if (!url)
+    if (!url || !/^https?:/i.test(url))
       return;
 
     ext.backgroundPage.sendMessage(
@@ -104,14 +104,56 @@ function resolveURL(url)
   return a.href;
 }
 
+function reinjectRulesWhenRemoved(document, style)
+{
+  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+  if (!MutationObserver)
+    return;
+
+  var observer = new MutationObserver(function(mutations)
+  {
+    var isStyleRemoved = false;
+    for (var i = 0; i < mutations.length; i++)
+    {
+      if ([].indexOf.call(mutations[i].removedNodes, style) != -1)
+      {
+        isStyleRemoved = true;
+        break;
+      }
+    }
+    if (!isStyleRemoved)
+      return;
+
+    observer.disconnect();
+
+    var n = document.styleSheets.length;
+    if (n == 0)
+      return;
+
+    var stylesheet = document.styleSheets[n - 1];
+    ext.backgroundPage.sendMessage(
+      {type: "get-selectors"},
+
+      function(selectors)
+      {
+        while (selectors.length > 0)
+        {
+          var selector = selectors.splice(0, SELECTOR_GROUP_SIZE).join(", ");
+
+          // Using non-standard addRule() here. This is the only way
+          // to add rules at the end of a cross-origin stylesheet
+          // because we don't know how many rules are already in there
+          stylesheet.addRule(selector, "display: none !important;");
+        }
+      }
+    );
+  });
+
+  observer.observe(style.parentNode, {childList: true});
+}
+
 function init(document)
 {
-  // prior to Chrome 37, content scripts don't run on about:blank
-  // and about:srcdoc. So we have to apply element hiding and collapsing
-  // from the parent frame, when inline frames are loaded.
-  var match = navigator.userAgent.match(/\bChrome\/(\d+)/);
-  var fixInlineFrames = match && parseInt(match[1]) < 37;
-
   // use Shadow DOM if available to don't mess with web pages that
   // rely on the order of their own <style> tags (#309). However we
   // must not create the shadow root in the response callback passed
@@ -167,6 +209,7 @@ function init(document)
     };
 
     setRules();
+    reinjectRulesWhenRemoved(document, style);
   };
 
   document.addEventListener("error", function(event)
@@ -181,7 +224,11 @@ function init(document)
     if (/^i?frame$/.test(element.localName))
       checkCollapse(element);
 
-    if (fixInlineFrames && isInlineFrame(element))
+    // prior to Chrome 37, content scripts cannot run on about:blank,
+    // about:srcdoc and javascript: URLs. Moreover, as of Chrome 40
+    // "load" and "error" events aren't dispatched there. So we have
+    // to apply element hiding and collapsing from the parent frame.
+    if (/\bChrome\//.test(navigator.userAgent) && isInlineFrame(element))
     {
       init(element.contentDocument);
 

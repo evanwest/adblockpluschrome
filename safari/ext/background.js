@@ -57,10 +57,16 @@
     }
   };
 
+  ext._getPage = function(id)
+  {
+    return pages[id];
+  };
+
   var isPageActive = function(page)
   {
     var tab = page._tab;
-    return tab == tab.browserWindow.activeTab && page == tab._visiblePage;
+    var win = tab.browserWindow;
+    return win && tab == win.activeTab && page == tab._visiblePage;
   };
 
   var forgetPage = function(id)
@@ -253,6 +259,9 @@
 
   safari.application.addEventListener("contextmenu", function(event)
   {
+    if (!event.userInfo)
+      return;
+
     var pageId = event.userInfo.pageId;
     if (!pageId)
       return;
@@ -265,8 +274,6 @@
     var context = event.userInfo.tagName;
     if (context == "img")
       context = "image";
-    if (!event.userInfo.srcUrl)
-      context = null;
 
     for (var i = 0; i < items.length; i++)
     {
@@ -284,14 +291,14 @@
     var page = pages[event.userInfo.pageId];
     var items = contextMenuItems.get(page);
 
-    items[event.command].onclick(event.userInfo.srcUrl, page);
+    items[event.command].onclick(page);
   });
 
 
   /* Web requests */
 
   ext.webRequest = {
-    onBeforeRequest: new ext._EventTarget(true),
+    onBeforeRequest: new ext._EventTarget(),
     handlerBehaviorChanged: function() {}
   };
 
@@ -604,13 +611,14 @@
             break;
           case "webRequest":
             var page = pages[event.message.pageId];
-
-            event.message = ext.webRequest.onBeforeRequest._dispatch(
+            var results = ext.webRequest.onBeforeRequest._dispatch(
               event.message.url,
               event.message.type,
               page,
               page._frames[event.message.frameId]
             );
+
+            event.message = (results.indexOf(false) == -1);
             break;
           case "proxy":
             event.message = backgroundPageProxy.handleMessage(event.message);
@@ -652,4 +660,27 @@
   /* Storage */
 
   ext.storage = safari.extension.settings;
+
+
+  /* Options */
+
+  ext.showOptions = function(callback)
+  {
+    var optionsUrl = safari.extension.baseURI + "options.html";
+
+    for (var id in pages)
+    {
+      var page = pages[id];
+
+      if (page.url == optionsUrl && page._tab.browserWindow == safari.application.activeBrowserWindow)
+      {
+        page.activate();
+        if (callback)
+          callback(page);
+        return;
+      }
+    }
+
+    ext.pages.open(optionsUrl, callback);
+  };
 })();

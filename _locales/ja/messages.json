@@ -27,16 +27,13 @@
     "message": "このポップアップが閉じた後にページ上の要素をクリック(または右クリック)してください。"
   },
   "description_chrome": {
-    "message": "無料の Chrome 用広告ブロックツール: 迷惑な YouTube のビデオ広告、Facebook 広告、バナー広告等をブロックします"
+    "message": "5,000万人以上に利用されている、Chrome 用の無料の広告ブロッカーです。目障りな広告、マルウェア、行動追跡を根こそぎブロックします。"
   },
   "description_opera": {
-    "message": "無料の Opera 用広告ブロックツール: 迷惑な YouTube のビデオ広告、Facebook 広告、バナー広告等をブロックします"
+    "message": "5,000万人以上に利用されている、Opera 用の無料の広告ブロッカーです。目障りな広告、マルウェア、行動追跡を根こそぎブロックします。"
   },
   "description_safari": {
-    "message": "無料の Safari 用広告ブロックツール: 迷惑な YouTube のビデオ広告、Facebook 広告、バナー広告等をブロックします"
-  },
-  "disable_inline": {
-    "message": "インラインテキスト広告を無効にする"
+    "message": "5,000万人以上に利用されている、Safari 用の無料の広告ブロッカーです。目障りな広告、マルウェア、行動追跡を根こそぎブロックします。"
   },
   "disabled_for_site": {
     "message": "このサイトで<strong>無効</strong>"
@@ -68,6 +65,14 @@
   "general": {
     "message": "一般"
   },
+  "invalid_css_selector": {
+    "message": "$selector$ は有効な CSS セレクタではありません",
+    "placeholders": {
+      "selector": {
+        "content": "$1"
+      }
+    }
+  },
   "last_updated_at": {
     "message": "最終更新日 $date$ $time$",
     "placeholders": {
@@ -83,6 +88,14 @@
     "message": "最終更新日  今日 $time$",
     "placeholders": {
       "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "line": {
+    "message": "$number$ 行目",
+    "placeholders": {
+      "number": {
         "content": "$1"
       }
     }
@@ -157,6 +170,9 @@
   },
   "subscriptionSelection_subscriptionSelector_label": {
     "message": "購読したいフィルタをリストから選択してください:"
+  },
+  "unexpected_filter_list_header": {
+    "message": "ここにフィルタのヘッダーを記述することはできません"
   },
   "update_now": {
     "message": "今すぐ更新"
